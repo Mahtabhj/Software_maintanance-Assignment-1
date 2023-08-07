@@ -22,7 +22,7 @@ public class Calculator {
     public static void main(String[] args) {
         Calculator calculator = new Calculator();
         int result = calculator.add(10, 5);
-        System.out.println("Addition: " + result);
+        System.out.println("Addit    ion: " + result);
         double divisionResult = calculator.divide(10, 2);
         System.out.println("Division: " + divisionResult);
     }
