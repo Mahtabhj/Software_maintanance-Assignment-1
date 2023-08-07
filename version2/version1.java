@@ -14,14 +14,16 @@ public class Calculator {
 
     public int divide(int a, int b) {
         if (b == 0) {
-            throw new IllegalArgumentException("Cannot divide by zero.");
+            throw new IllegalArgumentException("Cannot d ivide by zero.");
         }
         return a / b;
     }
 
     public static void main(String[] args) {
         Calculator calculator = new Calculator();
-        int result = calculator.add(10, 5);
-        System.out.println("Addition: " + result);
+         int result = calculator.add(10, 5);  
+        System.out.println("Additiop: " + result);
+          
+
     }
 }

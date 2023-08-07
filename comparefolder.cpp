@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #define MAX_FILENAME_LENGTH 256
 
@@ -41,6 +42,41 @@ void removeComments(char *line) {
     }
 }
 
+int isNullLine(const char *line) {
+    for (int i = 0; line[i] != '\0'; i++) {
+        if (!isspace(line[i])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int countSLOC(FILE *file) {
+    char buffer[1024];
+    int sloc = 0;
+
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        removeComments(buffer);
+
+        // Trim leading and trailing spaces from each line
+        char *start = buffer;
+        while (isspace(*start)) {
+            start++;
+        }
+        char *end = start + strlen(start) - 1;
+        while (end > start && isspace(*end)) {
+            *end = '\0';
+            end--;
+        }
+
+        if (!isNullLine(start)) {
+            sloc++;
+        }
+    }
+
+    return sloc;
+}
+
 // Function to compare two files line by line, show differences, and calculate SLOC
 void compareFiles(const char *filename1, const char *filename2) {
     FILE *file1 = fopen(filename1, "r");
@@ -56,44 +92,78 @@ void compareFiles(const char *filename1, const char *filename2) {
     int differencesFound = 0;
     int sloc1 = 0, sloc2 = 0;
 
-    while (fgets(line1, sizeof(line1), file1) != NULL && fgets(line2, sizeof(line2), file2) != NULL) {
+    sloc1 = countSLOC(file1);
+    sloc2 = countSLOC(file2);
+
+    fseek(file1, 0, SEEK_SET);
+    fseek(file2, 0, SEEK_SET);
+
+    while (1) {
+        char *result1 = fgets(line1, sizeof(line1), file1);
+        char *result2 = fgets(line2, sizeof(line2), file2);
+
+        // Check for end of both files
+        if (result1 == NULL && result2 == NULL) {
+            break;
+        }
+
         // Remove comments from each line
         removeComments(line1);
         removeComments(line2);
 
-        if (strcmp(line1, line2) != 0) {
+        // Trim leading and trailing spaces from each line
+        char *start1 = line1;
+        while (isspace(*start1)) {
+            start1++;
+        }
+        char *end1 = start1 + strlen(start1) - 1;
+        while (end1 > start1 && isspace(*end1)) {
+            *end1 = '\0';
+            end1--;
+        }
+
+        char *start2 = line2;
+        while (isspace(*start2)) {
+            start2++;
+        }
+        char *end2 = start2 + strlen(start2) - 1;
+        while (end2 > start2 && isspace(*end2)) {
+            *end2 = '\0';
+            end2--;
+        }
+
+        // Check for null lines in both versions
+        int nullLine1 = isNullLine(start1);
+        int nullLine2 = isNullLine(start2);
+
+        // Skip null lines in both versions
+        if (nullLine1 && nullLine2) {
+            lineNum++;
+            continue;
+        }
+
+        // Skip null lines in version1
+        if (nullLine1) {
+            printf("Line %d has been added in Version 2:\n", lineNum);
+            printf("Version 2, Line %d: %s\n", lineNum, start2);
+            differencesFound = 1;
+            lineNum++;
+            continue;
+        }
+
+        // Skip null lines in version2
+        if (nullLine2) {
+            lineNum++;
+            continue;
+        }
+
+        if (strcmp(start1, start2) != 0) {
             printf("Line %d has been modified:\n", lineNum);
-            printf("Version 1, Line %d: %s", lineNum, line1);
-            printf("Version 2, Line %d: %s", lineNum, line2);
+            printf("Version 1, Line %d: %s\n", lineNum, start1);
+            printf("Version 2, Line %d: %s\n", lineNum, start2);
             differencesFound = 1;
         }
         lineNum++;
-        sloc1++;
-        sloc2++;
-    }
-
-    // Check if there are any additional lines in version2
-    while (fgets(line2, sizeof(line2), file2) != NULL) {
-        // Remove comments from each additional line in version2
-        removeComments(line2);
-
-        printf("Line %d has been added in Version 2:\n", lineNum);
-        printf("Version 2, Line %d: %s", lineNum, line2);
-        differencesFound = 1;
-        lineNum++;
-        sloc2++;
-    }
-
-    // Check if there are any additional lines in version1
-    while (fgets(line1, sizeof(line1), file1) != NULL) {
-        // Remove comments from each additional line in version1
-        removeComments(line1);
-
-        printf("Line %d has been added in Version 1:\n", lineNum);
-        printf("Version 1, Line %d: %s", lineNum, line1);
-        differencesFound = 1;
-        lineNum++;
-        sloc1++;
     }
 
     if (!differencesFound) {
@@ -106,6 +176,8 @@ void compareFiles(const char *filename1, const char *filename2) {
     fclose(file1);
     fclose(file2);
 }
+
+
 
 // Function to recursively compare two folders
 void compareFolders(const char *folder1, const char *folder2) {
@@ -224,3 +296,5 @@ int main() {
 
     return 0;
 }
+
+
