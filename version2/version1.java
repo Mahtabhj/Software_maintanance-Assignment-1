@@ -12,18 +12,16 @@ public class Calculator {
         return a * b;
     }
 
-    public long divide(int a, int b) {
+    public int divide(int a, int b) {
         if (b == 0) {
             throw new IllegalArgumentException("Cannot divide by zero.");
         }
-        return (double) a / b;
+        return a / b;
     }
 
     public static void main(String[] args) {
         Calculator calculator = new Calculator();
         int result = calculator.add(10, 5);
         System.out.println("Addition: " + result);
-        double divisionResult = calculator.divide(10, 2);
-        System.out.println("Division: " + divisionResult);
     }
 }
