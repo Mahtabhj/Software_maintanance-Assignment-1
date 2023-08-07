@@ -89,7 +89,7 @@ void compareFiles(const char *filename1, const char *filename2) {
 
     char line1[1024], line2[1024];
     int lineNum = 1;
-    int differencesFound = 0;
+    int differencesFound = 0; // Counter for the number of differences found
     int sloc1 = 0, sloc2 = 0;
 
     sloc1 = countSLOC(file1);
@@ -146,7 +146,7 @@ void compareFiles(const char *filename1, const char *filename2) {
         if (nullLine1) {
             printf("Line %d has been added in Version 2:\n", lineNum);
             printf("Version 2, Line %d: %s\n", lineNum, start2);
-            differencesFound = 1;
+            differencesFound++;
             lineNum++;
             continue;
         }
@@ -161,13 +161,15 @@ void compareFiles(const char *filename1, const char *filename2) {
             printf("Line %d has been modified:\n", lineNum);
             printf("Version 1, Line %d: %s\n", lineNum, start1);
             printf("Version 2, Line %d: %s\n", lineNum, start2);
-            differencesFound = 1;
+            differencesFound++;
         }
         lineNum++;
     }
 
-    if (!differencesFound) {
+    if (differencesFound == 0) {
         printf("No differences found between %s and %s.\n", filename1, filename2);
+    } else {
+        printf("Total %d differences found between %s and %s.\n", differencesFound, filename1, filename2);
     }
 
     printf("SLOC in Version 1: %d\n", sloc1);
@@ -176,6 +178,7 @@ void compareFiles(const char *filename1, const char *filename2) {
     fclose(file1);
     fclose(file2);
 }
+
 
 
 
